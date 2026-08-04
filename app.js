@@ -1,10 +1,8 @@
 // REPLACE WITH YOUR ACTUAL SUPABASE URL AND ANON KEY
-const SUPABASE_URL = "https://eajlzqbleznhyoxnkvwf.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhamx6cWJsZXpuaHlveG5rdndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4NzMzNDQsImV4cCI6MjEwMTQ0OTM0NH0._Rnk8WHn5J0-BnCsVtgLy8olAx9o7LpplybzKCTHuws";
+const SUPABASE_URL = "https://YOUR_SUPABASE_PROJECT_ID.supabase.co";
+const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
 
-// Variable renamed to avoid scope conflict with the global window.supabase object
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const STEALTH_URL = "https://coneqt-s.mountcarmel.tas.edu.au:4430/#?page=/welcome";
 
 let currentUser = null;
@@ -13,9 +11,21 @@ let currentSubscription = null;
 let selectedGroupId = null;
 let isSignUpMode = false;
 
+// === INSTANT STEALTH EXIT ===
+function triggerStealth() {
+  // .replace() eliminates browser history lag for an instant redirect
+  window.location.replace(STEALTH_URL);
+}
+
+// Instant trigger on keydown before key release
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    triggerStealth();
+  }
+}, { capture: true });
+
 // === INITIALIZATION & AUTO-LOGIN SESSION PERSISTENCE ===
 window.addEventListener('DOMContentLoaded', async () => {
-  // Checks if the user is already logged in (even after browser close/reopen)
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
     currentUser = session.user;
@@ -24,17 +34,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     loadUserGroups();
   } else {
     showScreen('auth-screen');
-  }
-});
-
-// === STEALTH & KEYBOARD TRIGGERS ===
-function triggerStealth() {
-  window.location.href = STEALTH_URL;
-}
-
-window.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    triggerStealth();
   }
 });
 
@@ -79,9 +78,7 @@ async function handleAuthSubmit() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-pass').value.trim();
 
-  if (!email || !password) {
-    return alert("Please enter both email and password.");
-  }
+  if (!email || !password) return alert("Please enter both email and password.");
 
   if (isSignUpMode) {
     const username = document.getElementById('auth-username').value.trim();
@@ -91,12 +88,8 @@ async function handleAuthSubmit() {
     if (error) return alert("Sign Up Error: " + error.message);
 
     if (data.user) {
-      const { error: profileError } = await supabaseClient.from('profiles').insert([
-        { id: data.user.id, username: username }
-      ]);
-      if (profileError) console.error("Profile Creation Error:", profileError);
-      
-      alert("Account created successfully! Auto-signing you in...");
+      await supabaseClient.from('profiles').insert([{ id: data.user.id, username }]);
+      alert("Account created successfully!");
       currentUser = data.user;
       showScreen('menu-screen');
       loadUserGroups();
@@ -118,13 +111,16 @@ async function handleSignOut() {
   showScreen('auth-screen');
 }
 
-// === THEME CUSTOMISATION ===
+// === THEME CUSTOMISATION & PERSISTENCE ===
 function applyCustomTheme() {
   const root = document.documentElement;
   root.style.setProperty('--bg-color', document.getElementById('theme-bg').value);
   root.style.setProperty('--header-color', document.getElementById('theme-header').value);
   root.style.setProperty('--text-color', document.getElementById('theme-text').value);
   root.style.setProperty('--card-color', document.getElementById('theme-card').value);
+  root.style.setProperty('--accent-color', document.getElementById('theme-accent').value);
+  root.style.setProperty('--bubble-bg', document.getElementById('theme-bubble-bg').value);
+  root.style.setProperty('--bubble-text', document.getElementById('theme-bubble-text').value);
 }
 
 async function saveThemeToAccount() {
@@ -133,26 +129,44 @@ async function saveThemeToAccount() {
     bg: document.getElementById('theme-bg').value,
     header: document.getElementById('theme-header').value,
     text: document.getElementById('theme-text').value,
-    card: document.getElementById('theme-card').value
+    card: document.getElementById('theme-card').value,
+    accent: document.getElementById('theme-accent').value,
+    bubbleBg: document.getElementById('theme-bubble-bg').value,
+    bubbleText: document.getElementById('theme-bubble-text').value
   };
-  await supabaseClient.from('profiles').update({ theme_settings: themeSettings }).eq('id', currentUser.id);
-  closeThemeModal();
+  
+  const { error } = await supabaseClient.from('profiles').update({ theme_settings: themeSettings }).eq('id', currentUser.id);
+  if (error) {
+    alert("Error saving theme: " + error.message);
+  } else {
+    alert("Theme saved permanently!");
+    closeThemeModal();
+  }
 }
 
 async function loadUserProfile() {
   if (!currentUser) return;
   const { data } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
-  if (data && data.theme_settings && data.theme_settings.bg) {
+  
+  if (data && data.theme_settings) {
+    const t = data.theme_settings;
     const root = document.documentElement;
-    root.style.setProperty('--bg-color', data.theme_settings.bg);
-    root.style.setProperty('--header-color', data.theme_settings.header);
-    root.style.setProperty('--text-color', data.theme_settings.text);
-    root.style.setProperty('--card-color', data.theme_settings.card);
 
-    document.getElementById('theme-bg').value = data.theme_settings.bg;
-    document.getElementById('theme-header').value = data.theme_settings.header;
-    document.getElementById('theme-text').value = data.theme_settings.text;
-    document.getElementById('theme-card').value = data.theme_settings.card;
+    if (t.bg) root.style.setProperty('--bg-color', t.bg);
+    if (t.header) root.style.setProperty('--header-color', t.header);
+    if (t.text) root.style.setProperty('--text-color', t.text);
+    if (t.card) root.style.setProperty('--card-color', t.card);
+    if (t.accent) root.style.setProperty('--accent-color', t.accent);
+    if (t.bubbleBg) root.style.setProperty('--bubble-bg', t.bubbleBg);
+    if (t.bubbleText) root.style.setProperty('--bubble-text', t.bubbleText);
+
+    if (t.bg) document.getElementById('theme-bg').value = t.bg;
+    if (t.header) document.getElementById('theme-header').value = t.header;
+    if (t.text) document.getElementById('theme-text').value = t.text;
+    if (t.card) document.getElementById('theme-card').value = t.card;
+    if (t.accent) document.getElementById('theme-accent').value = t.accent;
+    if (t.bubbleBg) document.getElementById('theme-bubble-bg').value = t.bubbleBg;
+    if (t.bubbleText) document.getElementById('theme-bubble-text').value = t.bubbleText;
   }
 }
 
@@ -165,7 +179,7 @@ function showScreen(screenId) {
 // === GROUPS & PASSCODE ===
 async function loadUserGroups() {
   if (!currentUser) return;
-  const { data, error } = await supabaseClient.from('group_members').select('group_id, groups(id, name)').eq('user_id', currentUser.id);
+  const { data, error } = await supabaseClient.from('group_members').select('group_id, groups(id, name, invite_code)').eq('user_id', currentUser.id);
   const container = document.getElementById('groups-list');
   container.innerHTML = '';
 
@@ -232,7 +246,7 @@ async function createGroup() {
     { group_id: groupData.id, user_id: currentUser.id, is_admin: true }
   ]);
 
-  alert(`Group Created! Share this invite code with others: ${inviteCode}`);
+  alert(`Group Created! Share this invite code: ${inviteCode}`);
   document.getElementById('new-group-name').value = '';
   document.getElementById('new-group-passcode').value = '';
   loadUserGroups();
@@ -260,6 +274,9 @@ async function joinGroup() {
 async function enterChatRoom() {
   showScreen('chat-screen');
   document.getElementById('current-group-title').innerText = currentGroup.name;
+  
+  // Display Invite Code in Chat Top Left
+  document.getElementById('group-invite-display').innerText = `Code: ${currentGroup.invite_code}`;
 
   const { data } = await supabaseClient.from('group_members').select('is_admin').eq('group_id', currentGroup.id).eq('user_id', currentUser.id).single();
   if (data && data.is_admin) {
