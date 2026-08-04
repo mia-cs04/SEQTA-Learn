@@ -30,7 +30,7 @@
       <div>
         <button onclick="openThemeModal()">🎨 Theme</button>
         <button onclick="handleSignOut()" class="secondary">Sign Out</button>
-        <button onclick="triggerStealth()" class="stealth-btn">Exit</button>
+        <button onpointerdown="triggerStealth()" class="stealth-btn">Exit</button>
       </div>
     </header>
     <div class="content card">
@@ -59,11 +59,15 @@
 
   <div id="chat-screen" class="screen hidden">
     <header class="top-bar">
-      <button onclick="leaveChatRoom()">← Menu</button>
+      <div class="chat-header-left">
+        <button onclick="leaveChatRoom()">← Menu</button>
+        <span id="group-invite-display" class="invite-badge">Code: ---</span>
+      </div>
       <h2 id="current-group-title">Group Chat</h2>
       <div>
+        <button onclick="openThemeModal()">🎨 Theme</button>
         <button id="admin-panel-btn" class="hidden" onclick="openAdminModal()">⚙️ Admin</button>
-        <button onclick="triggerStealth()" class="stealth-btn">Exit</button>
+        <button onpointerdown="triggerStealth()" class="stealth-btn">Exit</button>
       </div>
     </header>
 
@@ -97,12 +101,25 @@
       <h3>Customise Appearance</h3>
       <label>Background Colour:</label>
       <input type="color" id="theme-bg" value="#f4f6f9" onchange="applyCustomTheme()">
+      
       <label>Header Colour:</label>
       <input type="color" id="theme-header" value="#1e293b" onchange="applyCustomTheme()">
+      
       <label>Text Colour:</label>
       <input type="color" id="theme-text" value="#0f172a" onchange="applyCustomTheme()">
+      
       <label>Card Background:</label>
       <input type="color" id="theme-card" value="#ffffff" onchange="applyCustomTheme()">
+
+      <label>Button / Accent Colour:</label>
+      <input type="color" id="theme-accent" value="#2563eb" onchange="applyCustomTheme()">
+
+      <label>Chat Bubble Background:</label>
+      <input type="color" id="theme-bubble-bg" value="#ffffff" onchange="applyCustomTheme()">
+
+      <label>Chat Bubble Text:</label>
+      <input type="color" id="theme-bubble-text" value="#0f172a" onchange="applyCustomTheme()">
+
       <button onclick="saveThemeToAccount()">Save Theme</button>
       <button onclick="closeThemeModal()" class="secondary">Close</button>
     </div>
