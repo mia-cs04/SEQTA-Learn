@@ -4,6 +4,8 @@
   --card-color: #ffffff;
   --text-color: #0f172a;
   --accent-color: #2563eb;
+  --bubble-bg: #ffffff;
+  --bubble-text: #0f172a;
   --broadcast-bg: #fef3c7;
 }
 
@@ -36,6 +38,21 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+.chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.invite-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
 .card {
   background: var(--card-color);
   margin: 20px auto;
@@ -44,6 +61,7 @@ body {
   max-width: 400px;
   width: 85%;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  color: var(--text-color);
 }
 
 input[type="text"], input[type="password"], input[type="email"] {
@@ -55,6 +73,7 @@ input[type="text"], input[type="password"], input[type="email"] {
   box-sizing: border-box;
 }
 
+/* ALL REGULAR BUTTONS USE YOUR CUSTOM ACCENT COLOUR */
 button {
   background-color: var(--accent-color);
   color: white;
@@ -64,6 +83,11 @@ button {
   cursor: pointer;
   font-weight: 600;
   margin-top: 6px;
+  transition: opacity 0.1s;
+}
+
+button:active {
+  opacity: 0.8;
 }
 
 button.secondary { background-color: #64748b; }
@@ -78,16 +102,20 @@ button.stealth-btn { background-color: #dc2626; }
   gap: 10px;
 }
 
+/* CUSTOM CHAT BUBBLE STYLING */
 .msg-bubble {
-  background: var(--card-color);
+  background-color: var(--bubble-bg);
+  color: var(--bubble-text);
   padding: 10px 14px;
   border-radius: 10px;
   max-width: 75%;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  word-break: break-word;
 }
 
 .msg-bubble.broadcast {
-  background: var(--broadcast-bg);
+  background-color: var(--broadcast-bg);
+  color: #0f172a;
   border-left: 4px solid #d97706;
 }
 
@@ -115,4 +143,12 @@ button.stealth-btn { background-color: #dc2626; }
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 999;
+}
+
+.modal label {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.9em;
+  font-weight: bold;
 }
