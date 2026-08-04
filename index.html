@@ -12,12 +12,15 @@
 
   <div id="auth-screen" class="screen">
     <div class="card">
-      <h2>SEQTA Portal</h2>
+      <h2 id="auth-title">SEQTA Portal Sign In</h2>
       <input type="email" id="auth-email" placeholder="Email Address">
       <input type="password" id="auth-pass" placeholder="Password">
-      <input type="text" id="auth-username" placeholder="Username (for display)">
-      <button onclick="handleSignUp()">Sign Up</button>
-      <button onclick="handleSignIn()" class="secondary">Sign In</button>
+      <input type="text" id="auth-username" placeholder="Username (for display)" class="hidden">
+      
+      <div id="auth-actions">
+        <button id="auth-submit-btn" onclick="handleAuthSubmit()">Sign In</button>
+        <button id="auth-toggle-btn" onclick="toggleAuthMode()" class="secondary">Need an account? Sign Up</button>
+      </div>
     </div>
   </div>
 
@@ -26,16 +29,19 @@
       <h1>My Groups</h1>
       <div>
         <button onclick="openThemeModal()">🎨 Theme</button>
+        <button onclick="handleSignOut()" class="secondary">Sign Out</button>
         <button onclick="triggerStealth()" class="stealth-btn">Exit</button>
       </div>
     </header>
-    <div class="content">
+    <div class="content card">
+      <h3>Your Active Groups</h3>
       <div id="groups-list"></div>
       <hr>
-      <h3>Join or Create Group</h3>
+      <h3>Join Group with Invite Code</h3>
       <input type="text" id="join-code" placeholder="Enter Invite Code">
       <button onclick="joinGroup()">Join Group</button>
-      <br><br>
+      <hr>
+      <h3>Create New Group</h3>
       <input type="text" id="new-group-name" placeholder="Group Name">
       <input type="password" id="new-group-passcode" maxlength="4" placeholder="4-Digit Passcode">
       <button onclick="createGroup()">Create Group</button>
@@ -90,13 +96,13 @@
     <div class="card">
       <h3>Customise Appearance</h3>
       <label>Background Colour:</label>
-      <input type="color" id="theme-bg" onchange="applyCustomTheme()">
+      <input type="color" id="theme-bg" value="#f4f6f9" onchange="applyCustomTheme()">
       <label>Header Colour:</label>
-      <input type="color" id="theme-header" onchange="applyCustomTheme()">
+      <input type="color" id="theme-header" value="#1e293b" onchange="applyCustomTheme()">
       <label>Text Colour:</label>
-      <input type="color" id="theme-text" onchange="applyCustomTheme()">
+      <input type="color" id="theme-text" value="#0f172a" onchange="applyCustomTheme()">
       <label>Card Background:</label>
-      <input type="color" id="theme-card" onchange="applyCustomTheme()">
+      <input type="color" id="theme-card" value="#ffffff" onchange="applyCustomTheme()">
       <button onclick="saveThemeToAccount()">Save Theme</button>
       <button onclick="closeThemeModal()" class="secondary">Close</button>
     </div>
