@@ -66,6 +66,7 @@
       <h2 id="current-group-title">Group Chat</h2>
       <div>
         <button onclick="openThemeModal()">🎨 Theme</button>
+        <button onclick="openMemberColorsModal()">💬 Chat Bubbles</button>
         <button id="admin-panel-btn" class="hidden" onclick="openAdminModal()">⚙️ Admin</button>
         <button onpointerdown="triggerStealth()" class="stealth-btn">Exit</button>
       </div>
@@ -77,6 +78,16 @@
     <div class="chat-input-bar">
       <input type="text" id="message-input" placeholder="Type a message..." onkeydown="handleEnterKey(event, sendMessage)">
       <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <div id="member-colors-modal" class="modal hidden">
+    <div class="card" style="max-width: 480px; max-height: 80vh; overflow-y: auto;">
+      <h3>Customise Member Chat Bubbles</h3>
+      <p style="font-size:0.85em; color: #64748b;">Set unique bubble colours for each group member (only visible to you).</p>
+      <div id="member-color-list"></div>
+      <button onclick="saveMemberColorsToAccount()">Save Member Colours</button>
+      <button onclick="closeMemberColorsModal()" class="secondary">Close</button>
     </div>
   </div>
 
@@ -98,7 +109,7 @@
 
   <div id="theme-modal" class="modal hidden">
     <div class="card">
-      <h3>Customise Appearance</h3>
+      <h3>Customise Global Appearance</h3>
       <label>Background Colour:</label>
       <input type="color" id="theme-bg" value="#f4f6f9" onchange="applyCustomTheme()">
       
@@ -114,11 +125,17 @@
       <label>Button / Accent Colour:</label>
       <input type="color" id="theme-accent" value="#2563eb" onchange="applyCustomTheme()">
 
-      <label>Chat Bubble Background:</label>
-      <input type="color" id="theme-bubble-bg" value="#ffffff" onchange="applyCustomTheme()">
+      <label>Default Bubble Background (Others):</label>
+      <input type="color" id="theme-bubble-bg" value="#e2e8f0" onchange="applyCustomTheme()">
 
-      <label>Chat Bubble Text:</label>
+      <label>Default Bubble Text (Others):</label>
       <input type="color" id="theme-bubble-text" value="#0f172a" onchange="applyCustomTheme()">
+
+      <label>Your Bubble Background (Self):</label>
+      <input type="color" id="theme-self-bubble-bg" value="#2563eb" onchange="applyCustomTheme()">
+
+      <label>Your Bubble Text (Self):</label>
+      <input type="color" id="theme-self-bubble-text" value="#ffffff" onchange="applyCustomTheme()">
 
       <button onclick="saveThemeToAccount()">Save Theme</button>
       <button onclick="closeThemeModal()" class="secondary">Close</button>
