@@ -11,7 +11,7 @@ let currentSubscription = null;
 let selectedGroupId = null;
 let isSignUpMode = false;
 
-// === ENTER KEY SUBMISSION HELPER ===
+// === ENTER KEY HELPER ===
 function handleEnterKey(event, actionFunction) {
   if (event.key === 'Enter') {
     event.preventDefault();
@@ -117,7 +117,7 @@ async function handleSignOut() {
   showScreen('auth-screen');
 }
 
-// === THEME CUSTOMISATION & PERSISTENCE ===
+// === THEME CUSTOMISATION ===
 function applyCustomTheme() {
   const root = document.documentElement;
   root.style.setProperty('--bg-color', document.getElementById('theme-bg').value);
@@ -185,7 +185,7 @@ function showScreen(screenId) {
 // === GROUPS & PASSCODE ===
 async function loadUserGroups() {
   if (!currentUser) return;
-  const { data, error } = await supabaseClient.from('group_members').select('group_id, groups(id, name, invite_code)').eq('user_id', currentUser.id);
+  const { data, error } = await supabaseClient.from('group_members').select('group_id, groups(id, name, invite_code, creator_id, passcode)').eq('user_id', currentUser.id);
   const container = document.getElementById('groups-list');
   container.innerHTML = '';
 
@@ -212,7 +212,6 @@ async function loadUserGroups() {
 function promptPasscode(group) {
   selectedGroupId = group;
   document.getElementById('passcode-modal').classList.remove('hidden');
-  // Auto-focus passcode input for quick typing
   setTimeout(() => document.getElementById('passcode-input').focus(), 100);
 }
 
@@ -284,8 +283,9 @@ async function enterChatRoom() {
   document.getElementById('current-group-title').innerText = currentGroup.name;
   document.getElementById('group-invite-display').innerText = `Code: ${currentGroup.invite_code}`;
 
-  const { data } = await supabaseClient.from('group_members').select('is_admin').eq('group_id', currentGroup.id).eq('user_id', currentUser.id).single();
-  if (data && data.is_admin) {
+  // Check Admin permission using config.js logic
+  const hasAdminRights = isUserAdmin(currentUser, currentGroup);
+  if (hasAdminRights) {
     document.getElementById('admin-panel-btn').classList.remove('hidden');
   } else {
     document.getElementById('admin-panel-btn').classList.add('hidden');
@@ -339,6 +339,63 @@ function subscribeToRealtime() {
         updateFaviconBadge(true);
       }
     }).subscribe();
+}
+
+// === SUPER ADMIN ACTIONS ===
+
+async function adminUpdateGroupName() {
+  if (!ADMIN_PERMISSIONS.canChangeGroupName) {
+    return alert("This admin feature is currently disabled.");
+  }
+
+  if (!isUserAdmin(currentUser, currentGroup)) {
+    return alert("Unauthorized: Only admins can change group names.");
+  }
+
+  const newName = document.getElementById('admin-new-name').value.trim();
+  if (!newName) return alert("Please enter a new name.");
+
+  const { error } = await supabaseClient
+    .from('groups')
+    .update({ name: newName })
+    .eq('id', currentGroup.id);
+
+  if (error) {
+    alert("Failed to update name: " + error.message);
+  } else {
+    currentGroup.name = newName;
+    document.getElementById('current-group-title').innerText = newName;
+    document.getElementById('admin-new-name').value = '';
+    alert("Group name updated successfully!");
+    closeAdminModal();
+  }
+}
+
+async function adminUpdatePasscode() {
+  if (!ADMIN_PERMISSIONS.canChangeGroupPasscode) {
+    return alert("This admin feature is currently disabled.");
+  }
+
+  if (!isUserAdmin(currentUser, currentGroup)) {
+    return alert("Unauthorized: Only admins can change group passcodes.");
+  }
+
+  const newPass = document.getElementById('admin-new-pass').value.trim();
+  if (newPass.length !== 4) return alert("Passcode must be exactly 4 digits.");
+
+  const { error } = await supabaseClient
+    .from('groups')
+    .update({ passcode: newPass })
+    .eq('id', currentGroup.id);
+
+  if (error) {
+    alert("Failed to update passcode: " + error.message);
+  } else {
+    currentGroup.passcode = newPass;
+    document.getElementById('admin-new-pass').value = '';
+    alert("Group passcode updated for everyone!");
+    closeAdminModal();
+  }
 }
 
 // === MODAL HELPERS ===
