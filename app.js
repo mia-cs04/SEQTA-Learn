@@ -440,8 +440,8 @@ function renderMessage(msg) {
   bubble.className = `msg-bubble ${msg.is_broadcast ? 'broadcast' : ''}`;
   bubble.innerText = msg.content;
 
-  // Apply per-member custom colors if configured in account settings
-  if (userMemberColors && userMemberColors[msg.user_id]) {
+  // ONLY apply inline styles if user specified a unique per-member color override
+  if (!isSelf && userMemberColors && userMemberColors[msg.user_id]) {
     const custom = userMemberColors[msg.user_id];
     if (custom.bg) bubble.style.backgroundColor = custom.bg;
     if (custom.text) bubble.style.color = custom.text;
