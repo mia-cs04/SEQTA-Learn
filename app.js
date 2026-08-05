@@ -11,13 +11,19 @@ let currentSubscription = null;
 let selectedGroupId = null;
 let isSignUpMode = false;
 
+// === ENTER KEY SUBMISSION HELPER ===
+function handleEnterKey(event, actionFunction) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    actionFunction();
+  }
+}
+
 // === INSTANT STEALTH EXIT ===
 function triggerStealth() {
-  // .replace() eliminates browser history lag for an instant redirect
   window.location.replace(STEALTH_URL);
 }
 
-// Instant trigger on keydown before key release
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     triggerStealth();
@@ -206,6 +212,8 @@ async function loadUserGroups() {
 function promptPasscode(group) {
   selectedGroupId = group;
   document.getElementById('passcode-modal').classList.remove('hidden');
+  // Auto-focus passcode input for quick typing
+  setTimeout(() => document.getElementById('passcode-input').focus(), 100);
 }
 
 async function verifyPasscode() {
@@ -274,8 +282,6 @@ async function joinGroup() {
 async function enterChatRoom() {
   showScreen('chat-screen');
   document.getElementById('current-group-title').innerText = currentGroup.name;
-  
-  // Display Invite Code in Chat Top Left
   document.getElementById('group-invite-display').innerText = `Code: ${currentGroup.invite_code}`;
 
   const { data } = await supabaseClient.from('group_members').select('is_admin').eq('group_id', currentGroup.id).eq('user_id', currentUser.id).single();
