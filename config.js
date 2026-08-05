@@ -3,7 +3,7 @@
 // ==========================================
 
 // 1. YOUR SUPER ADMIN EMAIL (Replace with your actual account email)
-const SUPER_ADMIN_EMAIL = "your-email@example.com";
+const SUPER_ADMIN_EMAIL = "miacairns22@gmail.com";
 
 // 2. PERMISSION MATRIX
 // Easily enable or disable features as you build more functionality in the future.
