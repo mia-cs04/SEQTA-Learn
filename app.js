@@ -268,7 +268,7 @@ async function saveMemberColorsToAccount() {
   } else {
     alert("Member chat bubble colors saved permanently!");
     closeMemberColorsModal();
-    fetchMessages(); // Re-render chat immediately with new custom colors
+    fetchMessages(); // Re-render all past and new chat bubbles immediately with new custom colors
   }
 }
 
@@ -395,9 +395,20 @@ async function enterChatRoom() {
 }
 
 async function fetchMessages() {
-  const { data } = await supabaseClient.from('messages').select('*, profiles(username)').eq('group_id', currentGroup.id).order('created_at', { ascending: true });
+  const { data, error } = await supabaseClient
+    .from('messages')
+    .select('*, profiles(username)')
+    .eq('group_id', currentGroup.id)
+    .order('created_at', { ascending: true });
+
   const container = document.getElementById('messages-container');
   container.innerHTML = '';
+
+  if (error) {
+    console.error("Error fetching messages:", error);
+    return;
+  }
+
   if (data) {
     data.forEach(msg => renderMessage(msg));
   }
@@ -410,6 +421,7 @@ function renderMessage(msg) {
 
   const wrapper = document.createElement('div');
   wrapper.className = `msg-wrapper ${isSelf ? 'self' : 'other'}`;
+  wrapper.setAttribute('data-user-id', msg.user_id);
 
   const authorSpan = document.createElement('span');
   authorSpan.className = 'msg-author';
@@ -419,8 +431,8 @@ function renderMessage(msg) {
   bubble.className = `msg-bubble ${msg.is_broadcast ? 'broadcast' : ''}`;
   bubble.innerText = msg.content;
 
-  // Apply per-member custom colors if configured
-  if (userMemberColors[msg.user_id]) {
+  // Apply per-member custom colors if configured in account settings
+  if (userMemberColors && userMemberColors[msg.user_id]) {
     const custom = userMemberColors[msg.user_id];
     if (custom.bg) bubble.style.backgroundColor = custom.bg;
     if (custom.text) bubble.style.color = custom.text;
@@ -538,7 +550,7 @@ async function adminUpdatePasscode() {
 // === MODAL HELPERS ===
 function closePasscodeModal() { document.getElementById('passcode-modal').classList.add('hidden'); }
 function openAdminModal() { document.getElementById('admin-modal').classList.remove('hidden'); }
-function closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); }
+function closeAdminModal() { document.getElementById('admin-modal').classList.remove('hidden'); }
 function openThemeModal() { document.getElementById('theme-modal').classList.remove('hidden'); }
 function closeThemeModal() { document.getElementById('theme-modal').classList.add('hidden'); }
 function leaveChatRoom() { showScreen('menu-screen'); loadUserGroups(); }
