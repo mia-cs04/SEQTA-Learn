@@ -133,6 +133,7 @@ button.stealth-btn { background-color: #dc2626; }
   border-radius: 18px 18px 4px 18px; /* iMessage right bubble tail shape */
 }
 
+/* OTHER USERS' BUBBLES NOW USE DYNAMIC CSS VARS FOR PAST & FUTURE MESSAGES */
 .msg-wrapper.other .msg-bubble {
   background-color: var(--bubble-bg);
   color: var(--bubble-text);
