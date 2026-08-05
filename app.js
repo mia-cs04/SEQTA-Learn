@@ -1,6 +1,6 @@
 // REPLACE WITH YOUR ACTUAL SUPABASE URL AND ANON KEY
-const SUPABASE_URL = "https://YOUR_SUPABASE_PROJECT_ID.supabase.co";
-const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
+const SUPABASE_URL = "https://eajlzqbleznhyoxnkvwf.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhamx6cWJsZXpuaHlveG5rdndmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4NzMzNDQsImV4cCI6MjEwMTQ0OTM0NH0._Rnk8WHn5J0-BnCsVtgLy8olAx9o7LpplybzKCTHuws";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const STEALTH_URL = "https://coneqt-s.mountcarmel.tas.edu.au:4430/#?page=/welcome";
