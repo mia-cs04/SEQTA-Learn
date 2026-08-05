@@ -75,7 +75,7 @@
     <div id="messages-container" class="messages-area"></div>
 
     <div class="chat-input-bar">
-      <input type="text" id="message-input" placeholder="Type a message (emojis supported 😊)..." onkeydown="handleEnterKey(event, sendMessage)">
+      <input type="text" id="message-input" placeholder="Type a message..." onkeydown="handleEnterKey(event, sendMessage)">
       <button onclick="sendMessage()">Send</button>
     </div>
   </div>
@@ -85,11 +85,11 @@
       <h3>Admin Dashboard</h3>
       <div class="admin-tab-group">
         <label>Rename Group:</label>
-        <input type="text" id="admin-new-name" placeholder="New Group Name">
+        <input type="text" id="admin-new-name" placeholder="New Group Name" onkeydown="handleEnterKey(event, adminUpdateGroupName)">
         <button onclick="adminUpdateGroupName()">Update Name</button>
         <hr>
         <label>Change Passcode (For Everyone):</label>
-        <input type="password" id="admin-new-pass" maxlength="4" placeholder="New 4-Digit Passcode">
+        <input type="password" id="admin-new-pass" maxlength="4" placeholder="New 4-Digit Passcode" onkeydown="handleEnterKey(event, adminUpdatePasscode)">
         <button onclick="adminUpdatePasscode()">Update Passcode</button>
       </div>
       <button onclick="closeAdminModal()" class="secondary">Close</button>
@@ -125,6 +125,7 @@
     </div>
   </div>
 
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
