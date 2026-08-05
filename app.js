@@ -131,8 +131,6 @@ function applyCustomTheme() {
   root.style.setProperty('--accent-color', document.getElementById('theme-accent').value);
   root.style.setProperty('--bubble-bg', document.getElementById('theme-bubble-bg').value);
   root.style.setProperty('--bubble-text', document.getElementById('theme-bubble-text').value);
-  root.style.setProperty('--self-bubble-bg', document.getElementById('theme-self-bubble-bg').value);
-  root.style.setProperty('--self-bubble-text', document.getElementById('theme-self-bubble-text').value);
 }
 
 async function saveThemeToAccount() {
@@ -144,9 +142,7 @@ async function saveThemeToAccount() {
     card: document.getElementById('theme-card').value,
     accent: document.getElementById('theme-accent').value,
     bubbleBg: document.getElementById('theme-bubble-bg').value,
-    bubbleText: document.getElementById('theme-bubble-text').value,
-    selfBubbleBg: document.getElementById('theme-self-bubble-bg').value,
-    selfBubbleText: document.getElementById('theme-self-bubble-text').value
+    bubbleText: document.getElementById('theme-bubble-text').value
   };
   
   const { error } = await supabaseClient.from('profiles').update({ theme_settings: themeSettings }).eq('id', currentUser.id);
@@ -179,8 +175,6 @@ async function loadUserProfile() {
       if (t.accent) root.style.setProperty('--accent-color', t.accent);
       if (t.bubbleBg) root.style.setProperty('--bubble-bg', t.bubbleBg);
       if (t.bubbleText) root.style.setProperty('--bubble-text', t.bubbleText);
-      if (t.selfBubbleBg) root.style.setProperty('--self-bubble-bg', t.selfBubbleBg);
-      if (t.selfBubbleText) root.style.setProperty('--self-bubble-text', t.selfBubbleText);
 
       if (t.bg) document.getElementById('theme-bg').value = t.bg;
       if (t.header) document.getElementById('theme-header').value = t.header;
@@ -189,8 +183,6 @@ async function loadUserProfile() {
       if (t.accent) document.getElementById('theme-accent').value = t.accent;
       if (t.bubbleBg) document.getElementById('theme-bubble-bg').value = t.bubbleBg;
       if (t.bubbleText) document.getElementById('theme-bubble-text').value = t.bubbleText;
-      if (t.selfBubbleBg) document.getElementById('theme-self-bubble-bg').value = t.selfBubbleBg;
-      if (t.selfBubbleText) document.getElementById('theme-self-bubble-text').value = t.selfBubbleText;
     }
   }
 }
@@ -268,7 +260,7 @@ async function saveMemberColorsToAccount() {
   } else {
     alert("Member chat bubble colors saved permanently!");
     closeMemberColorsModal();
-    fetchMessages(); // Re-render all past and new chat bubbles immediately with new custom colors
+    fetchMessages();
   }
 }
 
@@ -550,7 +542,7 @@ async function adminUpdatePasscode() {
 // === MODAL HELPERS ===
 function closePasscodeModal() { document.getElementById('passcode-modal').classList.add('hidden'); }
 function openAdminModal() { document.getElementById('admin-modal').classList.remove('hidden'); }
-function closeAdminModal() { document.getElementById('admin-modal').classList.remove('hidden'); }
+function closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); }
 function openThemeModal() { document.getElementById('theme-modal').classList.remove('hidden'); }
 function closeThemeModal() { document.getElementById('theme-modal').classList.add('hidden'); }
 function leaveChatRoom() { showScreen('menu-screen'); loadUserGroups(); }
