@@ -4,8 +4,10 @@
   --card-color: #ffffff;
   --text-color: #0f172a;
   --accent-color: #2563eb;
-  --bubble-bg: #ffffff;
+  --bubble-bg: #e2e8f0;
   --bubble-text: #0f172a;
+  --self-bubble-bg: #2563eb;
+  --self-bubble-text: #ffffff;
   --broadcast-bg: #fef3c7;
 }
 
@@ -73,7 +75,6 @@ input[type="text"], input[type="password"], input[type="email"] {
   box-sizing: border-box;
 }
 
-/* ALL REGULAR BUTTONS USE YOUR CUSTOM ACCENT COLOUR */
 button {
   background-color: var(--accent-color);
   color: white;
@@ -102,20 +103,52 @@ button.stealth-btn { background-color: #dc2626; }
   gap: 10px;
 }
 
-/* CUSTOM CHAT BUBBLE STYLING */
+/* iMESSAGE LAYOUT & STYLING */
+.msg-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.msg-wrapper.self {
+  align-items: flex-end;
+}
+
+.msg-wrapper.other {
+  align-items: flex-start;
+}
+
 .msg-bubble {
-  background-color: var(--bubble-bg);
-  color: var(--bubble-text);
   padding: 10px 14px;
-  border-radius: 10px;
-  max-width: 75%;
+  max-width: 70%;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   word-break: break-word;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.msg-wrapper.self .msg-bubble {
+  background-color: var(--self-bubble-bg);
+  color: var(--self-bubble-text);
+  border-radius: 18px 18px 4px 18px; /* iMessage right bubble tail shape */
+}
+
+.msg-wrapper.other .msg-bubble {
+  background-color: var(--bubble-bg);
+  color: var(--bubble-text);
+  border-radius: 18px 18px 18px 4px; /* iMessage left bubble tail shape */
+}
+
+.msg-author {
+  font-size: 0.75rem;
+  margin-bottom: 3px;
+  opacity: 0.7;
+  padding: 0 4px;
 }
 
 .msg-bubble.broadcast {
-  background-color: var(--broadcast-bg);
-  color: #0f172a;
+  background-color: var(--broadcast-bg) !important;
+  color: #0f172a !important;
   border-left: 4px solid #d97706;
 }
 
@@ -151,4 +184,23 @@ button.stealth-btn { background-color: #dc2626; }
   margin-top: 10px;
   font-size: 0.9em;
   font-weight: bold;
+}
+
+.member-color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.member-color-row label {
+  margin: 0;
+  font-size: 0.9em;
+}
+
+.color-pickers {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
