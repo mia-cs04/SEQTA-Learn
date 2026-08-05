@@ -13,9 +13,9 @@
   <div id="auth-screen" class="screen">
     <div class="card">
       <h2 id="auth-title">SEQTA Portal Sign In</h2>
-      <input type="email" id="auth-email" placeholder="Email Address">
-      <input type="password" id="auth-pass" placeholder="Password">
-      <input type="text" id="auth-username" placeholder="Username (for display)" class="hidden">
+      <input type="email" id="auth-email" placeholder="Email Address" onkeydown="handleEnterKey(event, handleAuthSubmit)">
+      <input type="password" id="auth-pass" placeholder="Password" onkeydown="handleEnterKey(event, handleAuthSubmit)">
+      <input type="text" id="auth-username" placeholder="Username (for display)" class="hidden" onkeydown="handleEnterKey(event, handleAuthSubmit)">
       
       <div id="auth-actions">
         <button id="auth-submit-btn" onclick="handleAuthSubmit()">Sign In</button>
@@ -38,12 +38,12 @@
       <div id="groups-list"></div>
       <hr>
       <h3>Join Group with Invite Code</h3>
-      <input type="text" id="join-code" placeholder="Enter Invite Code">
+      <input type="text" id="join-code" placeholder="Enter Invite Code" onkeydown="handleEnterKey(event, joinGroup)">
       <button onclick="joinGroup()">Join Group</button>
       <hr>
       <h3>Create New Group</h3>
       <input type="text" id="new-group-name" placeholder="Group Name">
-      <input type="password" id="new-group-passcode" maxlength="4" placeholder="4-Digit Passcode">
+      <input type="password" id="new-group-passcode" maxlength="4" placeholder="4-Digit Passcode" onkeydown="handleEnterKey(event, createGroup)">
       <button onclick="createGroup()">Create Group</button>
     </div>
   </div>
@@ -51,7 +51,7 @@
   <div id="passcode-modal" class="modal hidden">
     <div class="card">
       <h3>Enter Group Passcode</h3>
-      <input type="password" id="passcode-input" maxlength="4" placeholder="4 Digits">
+      <input type="password" id="passcode-input" maxlength="4" placeholder="4 Digits" onkeydown="handleEnterKey(event, verifyPasscode)">
       <button onclick="verifyPasscode()">Enter</button>
       <button onclick="closePasscodeModal()" class="secondary">Cancel</button>
     </div>
@@ -75,7 +75,7 @@
     <div id="messages-container" class="messages-area"></div>
 
     <div class="chat-input-bar">
-      <input type="text" id="message-input" placeholder="Type a message (emojis supported 😊)...">
+      <input type="text" id="message-input" placeholder="Type a message (emojis supported 😊)..." onkeydown="handleEnterKey(event, sendMessage)">
       <button onclick="sendMessage()">Send</button>
     </div>
   </div>
