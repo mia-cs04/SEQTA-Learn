@@ -6,10 +6,12 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const STEALTH_URL = "https://coneqt-s.mountcarmel.tas.edu.au:4430/#?page=/welcome";
 
 let currentUser = null;
+let currentProfile = null;
 let currentGroup = null;
 let currentSubscription = null;
 let selectedGroupId = null;
 let isSignUpMode = false;
+let userMemberColors = {}; // Stores custom per-member bubble colors
 
 // === ENTER KEY HELPER ===
 function handleEnterKey(event, actionFunction) {
@@ -97,6 +99,7 @@ async function handleAuthSubmit() {
       await supabaseClient.from('profiles').insert([{ id: data.user.id, username }]);
       alert("Account created successfully!");
       currentUser = data.user;
+      await loadUserProfile();
       showScreen('menu-screen');
       loadUserGroups();
     }
@@ -114,10 +117,11 @@ async function handleAuthSubmit() {
 async function handleSignOut() {
   await supabaseClient.auth.signOut();
   currentUser = null;
+  currentProfile = null;
   showScreen('auth-screen');
 }
 
-// === THEME CUSTOMISATION ===
+// === THEME CUSTOMISATION & PERSISTENCE ===
 function applyCustomTheme() {
   const root = document.documentElement;
   root.style.setProperty('--bg-color', document.getElementById('theme-bg').value);
@@ -127,6 +131,8 @@ function applyCustomTheme() {
   root.style.setProperty('--accent-color', document.getElementById('theme-accent').value);
   root.style.setProperty('--bubble-bg', document.getElementById('theme-bubble-bg').value);
   root.style.setProperty('--bubble-text', document.getElementById('theme-bubble-text').value);
+  root.style.setProperty('--self-bubble-bg', document.getElementById('theme-self-bubble-bg').value);
+  root.style.setProperty('--self-bubble-text', document.getElementById('theme-self-bubble-text').value);
 }
 
 async function saveThemeToAccount() {
@@ -138,7 +144,9 @@ async function saveThemeToAccount() {
     card: document.getElementById('theme-card').value,
     accent: document.getElementById('theme-accent').value,
     bubbleBg: document.getElementById('theme-bubble-bg').value,
-    bubbleText: document.getElementById('theme-bubble-text').value
+    bubbleText: document.getElementById('theme-bubble-text').value,
+    selfBubbleBg: document.getElementById('theme-self-bubble-bg').value,
+    selfBubbleText: document.getElementById('theme-self-bubble-text').value
   };
   
   const { error } = await supabaseClient.from('profiles').update({ theme_settings: themeSettings }).eq('id', currentUser.id);
@@ -154,26 +162,118 @@ async function loadUserProfile() {
   if (!currentUser) return;
   const { data } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
   
-  if (data && data.theme_settings) {
-    const t = data.theme_settings;
-    const root = document.documentElement;
+  if (data) {
+    currentProfile = data;
+    if (data.member_colors) {
+      userMemberColors = data.member_colors;
+    }
 
-    if (t.bg) root.style.setProperty('--bg-color', t.bg);
-    if (t.header) root.style.setProperty('--header-color', t.header);
-    if (t.text) root.style.setProperty('--text-color', t.text);
-    if (t.card) root.style.setProperty('--card-color', t.card);
-    if (t.accent) root.style.setProperty('--accent-color', t.accent);
-    if (t.bubbleBg) root.style.setProperty('--bubble-bg', t.bubbleBg);
-    if (t.bubbleText) root.style.setProperty('--bubble-text', t.bubbleText);
+    if (data.theme_settings) {
+      const t = data.theme_settings;
+      const root = document.documentElement;
 
-    if (t.bg) document.getElementById('theme-bg').value = t.bg;
-    if (t.header) document.getElementById('theme-header').value = t.header;
-    if (t.text) document.getElementById('theme-text').value = t.text;
-    if (t.card) document.getElementById('theme-card').value = t.card;
-    if (t.accent) document.getElementById('theme-accent').value = t.accent;
-    if (t.bubbleBg) document.getElementById('theme-bubble-bg').value = t.bubbleBg;
-    if (t.bubbleText) document.getElementById('theme-bubble-text').value = t.bubbleText;
+      if (t.bg) root.style.setProperty('--bg-color', t.bg);
+      if (t.header) root.style.setProperty('--header-color', t.header);
+      if (t.text) root.style.setProperty('--text-color', t.text);
+      if (t.card) root.style.setProperty('--card-color', t.card);
+      if (t.accent) root.style.setProperty('--accent-color', t.accent);
+      if (t.bubbleBg) root.style.setProperty('--bubble-bg', t.bubbleBg);
+      if (t.bubbleText) root.style.setProperty('--bubble-text', t.bubbleText);
+      if (t.selfBubbleBg) root.style.setProperty('--self-bubble-bg', t.selfBubbleBg);
+      if (t.selfBubbleText) root.style.setProperty('--self-bubble-text', t.selfBubbleText);
+
+      if (t.bg) document.getElementById('theme-bg').value = t.bg;
+      if (t.header) document.getElementById('theme-header').value = t.header;
+      if (t.text) document.getElementById('theme-text').value = t.text;
+      if (t.card) document.getElementById('theme-card').value = t.card;
+      if (t.accent) document.getElementById('theme-accent').value = t.accent;
+      if (t.bubbleBg) document.getElementById('theme-bubble-bg').value = t.bubbleBg;
+      if (t.bubbleText) document.getElementById('theme-bubble-text').value = t.bubbleText;
+      if (t.selfBubbleBg) document.getElementById('theme-self-bubble-bg').value = t.selfBubbleBg;
+      if (t.selfBubbleText) document.getElementById('theme-self-bubble-text').value = t.selfBubbleText;
+    }
   }
+}
+
+// === PER-MEMBER CHAT BUBBLE CUSTOMISATION ===
+async function openMemberColorsModal() {
+  if (!currentGroup) return;
+
+  const { data: members, error } = await supabaseClient
+    .from('group_members')
+    .select('user_id, profiles(id, username)')
+    .eq('group_id', currentGroup.id);
+
+  if (error || !members) return alert("Error loading member list.");
+
+  const container = document.getElementById('member-color-list');
+  container.innerHTML = '';
+
+  members.forEach(item => {
+    if (!item.profiles) return;
+    const mId = item.profiles.id;
+    const name = item.profiles.username || 'User';
+    
+    // Existing saved colors or defaults
+    const savedBg = (userMemberColors[mId] && userMemberColors[mId].bg) ? userMemberColors[mId].bg : '#e2e8f0';
+    const savedText = (userMemberColors[mId] && userMemberColors[mId].text) ? userMemberColors[mId].text : '#0f172a';
+
+    const row = document.createElement('div');
+    row.className = 'member-color-row';
+    row.innerHTML = `
+      <label>${name} ${mId === currentUser.id ? '(You)' : ''}</label>
+      <div class="color-pickers">
+        <span style="font-size: 0.75em;">Bg:</span>
+        <input type="color" id="mbg-${mId}" value="${savedBg}">
+        <span style="font-size: 0.75em;">Text:</span>
+        <input type="color" id="mtxt-${mId}" value="${savedText}">
+      </div>
+    `;
+    container.appendChild(row);
+  });
+
+  document.getElementById('member-colors-modal').classList.remove('hidden');
+}
+
+async function saveMemberColorsToAccount() {
+  if (!currentGroup || !currentUser) return;
+
+  const { data: members } = await supabaseClient
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', currentGroup.id);
+
+  if (members) {
+    members.forEach(m => {
+      const mId = m.user_id;
+      const bgInput = document.getElementById(`mbg-${mId}`);
+      const txtInput = document.getElementById(`mtxt-${mId}`);
+
+      if (bgInput && txtInput) {
+        userMemberColors[mId] = {
+          bg: bgInput.value,
+          text: txtInput.value
+        };
+      }
+    });
+  }
+
+  const { error } = await supabaseClient
+    .from('profiles')
+    .update({ member_colors: userMemberColors })
+    .eq('id', currentUser.id);
+
+  if (error) {
+    alert("Failed to save member colors: " + error.message);
+  } else {
+    alert("Member chat bubble colors saved permanently!");
+    closeMemberColorsModal();
+    fetchMessages(); // Re-render chat immediately with new custom colors
+  }
+}
+
+function closeMemberColorsModal() {
+  document.getElementById('member-colors-modal').classList.add('hidden');
 }
 
 // === SCREEN SWITCHING ===
@@ -283,7 +383,6 @@ async function enterChatRoom() {
   document.getElementById('current-group-title').innerText = currentGroup.name;
   document.getElementById('group-invite-display').innerText = `Code: ${currentGroup.invite_code}`;
 
-  // Check Admin permission using config.js logic
   const hasAdminRights = isUserAdmin(currentUser, currentGroup);
   if (hasAdminRights) {
     document.getElementById('admin-panel-btn').classList.remove('hidden');
@@ -307,23 +406,59 @@ async function fetchMessages() {
 
 function renderMessage(msg) {
   const container = document.getElementById('messages-container');
-  const div = document.createElement('div');
-  div.className = `msg-bubble ${msg.is_broadcast ? 'broadcast' : ''}`;
-  div.innerHTML = `<strong>${msg.profiles ? msg.profiles.username : 'User'}:</strong> ${msg.content}`;
-  container.appendChild(div);
+  const isSelf = msg.user_id === currentUser.id;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = `msg-wrapper ${isSelf ? 'self' : 'other'}`;
+
+  const authorSpan = document.createElement('span');
+  authorSpan.className = 'msg-author';
+  authorSpan.innerText = msg.profiles ? msg.profiles.username : 'User';
+
+  const bubble = document.createElement('div');
+  bubble.className = `msg-bubble ${msg.is_broadcast ? 'broadcast' : ''}`;
+  bubble.innerText = msg.content;
+
+  // Apply per-member custom colors if configured
+  if (userMemberColors[msg.user_id]) {
+    const custom = userMemberColors[msg.user_id];
+    if (custom.bg) bubble.style.backgroundColor = custom.bg;
+    if (custom.text) bubble.style.color = custom.text;
+  }
+
+  wrapper.appendChild(authorSpan);
+  wrapper.appendChild(bubble);
+  container.appendChild(wrapper);
   container.scrollTop = container.scrollHeight;
 }
 
+// INSTANT MESSAGE SENDING (Optimistic UI Update)
 async function sendMessage() {
   const input = document.getElementById('message-input');
-  if (!input.value.trim()) return;
+  const text = input.value.trim();
+  if (!text) return;
 
-  await supabaseClient.from('messages').insert([{
+  input.value = '';
+
+  // Render message locally right away for instant feedback
+  const tempMsg = {
+    id: 'temp-' + Date.now(),
+    user_id: currentUser.id,
+    content: text,
+    profiles: { username: (currentProfile && currentProfile.username) ? currentProfile.username : 'You' }
+  };
+  renderMessage(tempMsg);
+
+  // Send request in background
+  const { error } = await supabaseClient.from('messages').insert([{
     group_id: currentGroup.id,
     user_id: currentUser.id,
-    content: input.value
+    content: text
   }]);
-  input.value = '';
+
+  if (error) {
+    alert("Failed to send message: " + error.message);
+  }
 }
 
 function subscribeToRealtime() {
@@ -331,6 +466,9 @@ function subscribeToRealtime() {
 
   currentSubscription = supabaseClient.channel('realtime:messages')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `group_id=eq.${currentGroup.id}` }, async payload => {
+      // Avoid duplicate rendering if message was optimistic self-insert
+      if (payload.new.user_id === currentUser.id) return;
+
       const { data } = await supabaseClient.from('profiles').select('username').eq('id', payload.new.user_id).single();
       payload.new.profiles = data;
       renderMessage(payload.new);
@@ -342,7 +480,6 @@ function subscribeToRealtime() {
 }
 
 // === SUPER ADMIN ACTIONS ===
-
 async function adminUpdateGroupName() {
   if (!ADMIN_PERMISSIONS.canChangeGroupName) {
     return alert("This admin feature is currently disabled.");
