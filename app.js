@@ -146,8 +146,6 @@ function applyCustomTheme() {
   root.style.setProperty('--text-color', document.getElementById('theme-text').value);
   root.style.setProperty('--card-color', document.getElementById('theme-card').value);
   root.style.setProperty('--accent-color', document.getElementById('theme-accent').value);
-  root.style.setProperty('--bubble-bg', document.getElementById('theme-bubble-bg').value);
-  root.style.setProperty('--bubble-text', document.getElementById('theme-bubble-text').value);
 }
 
 async function saveThemeToAccount() {
@@ -157,9 +155,7 @@ async function saveThemeToAccount() {
     header: document.getElementById('theme-header').value,
     text: document.getElementById('theme-text').value,
     card: document.getElementById('theme-card').value,
-    accent: document.getElementById('theme-accent').value,
-    bubbleBg: document.getElementById('theme-bubble-bg').value,
-    bubbleText: document.getElementById('theme-bubble-text').value
+    accent: document.getElementById('theme-accent').value
   };
   
   const { error } = await supabaseClient.from('profiles').update({ theme_settings: themeSettings }).eq('id', currentUser.id);
@@ -190,16 +186,12 @@ async function loadUserProfile() {
       if (t.text) root.style.setProperty('--text-color', t.text);
       if (t.card) root.style.setProperty('--card-color', t.card);
       if (t.accent) root.style.setProperty('--accent-color', t.accent);
-      if (t.bubbleBg) root.style.setProperty('--bubble-bg', t.bubbleBg);
-      if (t.bubbleText) root.style.setProperty('--bubble-text', t.bubbleText);
 
       if (t.bg) document.getElementById('theme-bg').value = t.bg;
       if (t.header) document.getElementById('theme-header').value = t.header;
       if (t.text) document.getElementById('theme-text').value = t.text;
       if (t.card) document.getElementById('theme-card').value = t.card;
       if (t.accent) document.getElementById('theme-accent').value = t.accent;
-      if (t.bubbleBg) document.getElementById('theme-bubble-bg').value = t.bubbleBg;
-      if (t.bubbleText) document.getElementById('theme-bubble-text').value = t.bubbleText;
     }
   }
 }
@@ -277,6 +269,7 @@ async function saveMemberColorsToAccount() {
   } else {
     alert("Member chat bubble colors saved permanently!");
     closeMemberColorsModal();
+    // RE-FETCH MESSAGES TO IMMEDIATELY APPLY COLORS TO ALL PAST CHATS
     fetchMessages();
   }
 }
@@ -440,8 +433,8 @@ function renderMessage(msg) {
   bubble.className = `msg-bubble ${msg.is_broadcast ? 'broadcast' : ''}`;
   bubble.innerText = msg.content;
 
-  // ONLY apply inline styles if user specified a unique per-member color override
-  if (!isSelf && userMemberColors && userMemberColors[msg.user_id]) {
+  // APPLY PER-MEMBER COLORS (FOR BOTH PAST AND NEW MESSAGES)
+  if (userMemberColors && userMemberColors[msg.user_id]) {
     const custom = userMemberColors[msg.user_id];
     if (custom.bg) bubble.style.backgroundColor = custom.bg;
     if (custom.text) bubble.style.color = custom.text;
