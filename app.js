@@ -5,12 +5,6 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const STEALTH_URL = "https://coneqt-s.mountcarmel.tas.edu.au:4430/#?page=/welcome";
 
-// ADMIN PERMISSIONS DEFAULT
-const ADMIN_PERMISSIONS = {
-  canChangeGroupName: true,
-  canChangeGroupPasscode: true
-};
-
 let currentUser = null;
 let currentProfile = null;
 let currentGroup = null;
@@ -20,10 +14,7 @@ let isSignUpMode = false;
 let userMemberColors = {}; // Stores custom per-member bubble colors
 
 // === HELPER FUNCTIONS ===
-function isUserAdmin(user, group) {
-  if (!user || !group) return false;
-  return group.creator_id === user.id;
-}
+// (isUserAdmin is defined in config.js)
 
 // === ENTER KEY HELPER ===
 function handleEnterKey(event, actionFunction) {
@@ -287,27 +278,50 @@ function showScreen(screenId) {
 // === GROUPS & PASSCODE ===
 async function loadUserGroups() {
   if (!currentUser) return;
-  const { data, error } = await supabaseClient.from('group_members').select('group_id, groups(id, name, invite_code, creator_id, passcode)').eq('user_id', currentUser.id);
   const container = document.getElementById('groups-list');
   container.innerHTML = '';
 
-  if (error) {
+  // 1. Fetch group IDs the user belongs to
+  const { data: memberData, error: memberErr } = await supabaseClient
+    .from('group_members')
+    .select('group_id')
+    .eq('user_id', currentUser.id);
+
+  if (memberErr) {
+    console.error("Error fetching group memberships:", memberErr);
     container.innerHTML = '<p>Error loading groups.</p>';
     return;
   }
 
-  if (!data || data.length === 0) {
+  if (!memberData || memberData.length === 0) {
     container.innerHTML = '<p>No groups joined yet.</p>';
     return;
   }
 
-  data.forEach(item => {
-    if (item.groups) {
-      const btn = document.createElement('button');
-      btn.innerText = item.groups.name;
-      btn.onclick = () => promptPasscode(item.groups);
-      container.appendChild(btn);
-    }
+  const groupIds = memberData.map(m => m.group_id);
+
+  // 2. Fetch group details directly from the groups table
+  const { data: groupsData, error: groupErr } = await supabaseClient
+    .from('groups')
+    .select('id, name, invite_code, creator_id, passcode')
+    .in('id', groupIds);
+
+  if (groupErr) {
+    console.error("Error fetching groups:", groupErr);
+    container.innerHTML = '<p>Error loading groups.</p>';
+    return;
+  }
+
+  if (!groupsData || groupsData.length === 0) {
+    container.innerHTML = '<p>No groups joined yet.</p>';
+    return;
+  }
+
+  groupsData.forEach(group => {
+    const btn = document.createElement('button');
+    btn.innerText = group.name;
+    btn.onclick = () => promptPasscode(group);
+    container.appendChild(btn);
   });
 }
 
